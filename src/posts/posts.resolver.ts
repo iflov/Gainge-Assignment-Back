@@ -1,4 +1,4 @@
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { PostsService } from './posts.service';
 import { Post } from './entities/posts.model';
 import { CreatePostInput } from './dtos/create-post.input';
@@ -14,6 +14,11 @@ export class PostsResolver {
     @Query(() => [Post], { name: 'posts' })
     async getPosts(): Promise<Post[]> {
         return this.postsService.findAll();
+    }
+
+    @Query(() => Post) // 추가된 부분
+    post(@Args('id', { type: () => Int }) id: number): Promise<Post> {
+        return this.postsService.findOne(id);
     }
 
     /**
