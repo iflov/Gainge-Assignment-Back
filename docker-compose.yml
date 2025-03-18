@@ -1,20 +1,46 @@
 version: '3'
 
 services:
+  # MySQL 서비스: 과제에서 제공된 설정 기반
   mysql-db:
     image: mysql
+    container_name: gainge-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: test
+      MYSQL_ROOT_PASSWORD: test  # 과제 요구사항에 맞춘 비밀번호
+      MYSQL_DATABASE: gainge
       TZ: Asia/Seoul
     ports:
       - "3306:3306"
-  postgres-db:
-    image: postgres
+    volumes:
+      - mysql-data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:  # 헬스체크 추가
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ptest"]
+      interval: 5s
+      retries: 10
+      timeout: 3s
+
+  # API 서비스
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gainge-api
     restart: always
-    shm_size: 128mb
-    environment:
-      POSTGRES_PASSWORD: test
-      TZ: Asia/Seoul
     ports:
-      - "5432:5432"
+      - "5000:5000"  # 과제 요구사항에 맞춘 포트
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      DATABASE_URL: mysql://root:test@mysql-db:3306/gainge
+      NODE_ENV: development
+      TZ: Asia/Seoul
+    depends_on:
+      mysql-db:
+        condition: service_healthy  # MySQL 헬스체크가 통과된 후에 시작
+    command: npm run start:dev
+
+volumes:
+  mysql-data:
