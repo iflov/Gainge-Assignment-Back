@@ -65,7 +65,6 @@ describe('PostsService', () => {
         });
     });
 
-    // 게시글 생성 테스트
     describe('createPost', () => {
         it('게시글을 생성할 수 있어야 한다.', async () => {
             const createPostInput: CreatePostInput = {
@@ -75,7 +74,6 @@ describe('PostsService', () => {
                 password: 'hashedpassword123',
             };
 
-            // Post 타입에 맞게 mockPost 정의
             const mockPost: Post = {
                 id: 1,
                 title: createPostInput.title,

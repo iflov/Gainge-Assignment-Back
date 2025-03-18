@@ -1,4 +1,3 @@
-// src/posts/posts.resolver.ts
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { PostsService } from './posts.service';
 import { Post } from './entities/posts.model';

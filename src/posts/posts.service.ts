@@ -1,4 +1,3 @@
-// src/posts/posts.service.ts
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { IPostsRepository } from './interfaces/posts-repository.interface';
 import { Post } from '@prisma/client';

@@ -1,4 +1,3 @@
-// src/posts/interfaces/posts-repository.interface.ts
 import { Post } from '@prisma/client';
 import { CreatePostInput } from '../dtos/create-post.input';
 

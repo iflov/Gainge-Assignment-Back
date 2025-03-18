@@ -1,4 +1,3 @@
-// src/posts/posts.module.ts
 import { Module } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { PostsResolver } from './posts.resolver';

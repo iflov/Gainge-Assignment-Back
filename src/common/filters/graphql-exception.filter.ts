@@ -1,71 +1,55 @@
-import { ArgumentsHost, Catch, HttpException } from '@nestjs/common';
-import { GqlArgumentsHost, GqlExceptionFilter } from '@nestjs/graphql';
-import { GraphQLError } from 'graphql/error';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from '@nestjs/common';
+import { GraphQLError } from 'graphql';
+import { GqlArgumentsHost } from '@nestjs/graphql';
 
 @Catch()
-export class GraphQLExceptionFilter implements GqlExceptionFilter {
-    catch(exception: any, host: ArgumentsHost) {
+export class GraphQLExceptionFilter implements ExceptionFilter {
+    private readonly logger = new Logger(GraphQLExceptionFilter.name);
+
+    catch(exception: unknown, host: ArgumentsHost) {
         const gqlHost = GqlArgumentsHost.create(host);
         const ctx = gqlHost.getContext();
-
-        let statusCode = 500;
-        let message = '서버 내부 오류가 발생했습니다.';
-        let code = 'INTERNAL_SERVER_ERROR';
+        const request = ctx.req || {}; // 요청 정보 가져오기
 
         if (exception instanceof HttpException) {
-            statusCode = exception.getStatus();
-            const response = exception.getResponse() as any;
-            message = response.message || exception.message;
-            code = response.code || this.getCodeFromStatus(statusCode);
-        } else if (exception instanceof GraphQLError) {
-            message = exception.message;
-            code = 'GRAPHQL_ERROR';
-        } else if (exception instanceof Error) {
-            message = exception.message;
+            const response = exception.getResponse();
+            const status = exception.getStatus();
+
+            // NestJS 에러 로깅
+            this.logger.error(`HTTP Error: ${JSON.stringify(response)}`, {
+                statusCode: status,
+                path: request.path,
+                method: request.method,
+                userId: request.user?.id || 'anonymous',
+            });
+
+            // GraphQL 형식으로 변환하여 상세 정보 포함
+            return new GraphQLError(typeof response === 'string' ? response : response['message'], {
+                extensions: {
+                    code: status === 400 ? 'BAD_USER_INPUT' : 'INTERNAL_SERVER_ERROR',
+                    statusCode: status,
+                    path: request.path || 'unknown',
+                    method: request.method || 'unknown',
+                    userId: request.user?.id || 'anonymous',
+                    errors: typeof response === 'object' ? response : null,
+                },
+            });
         }
 
-        // 요청 정보 추출 (있는 경우)
-        const reqInfo = ctx.req
-            ? {
-                  ip: ctx.req.ip,
-                  method: ctx.req.method,
-                  path: ctx.req.originalUrl,
-                  // 인증된 사용자 정보도 추가 가능 (req.user가 있는 경우)
-                  userId: ctx.req.user?.id || 'anonymous',
-              }
-            : {};
+        // 기타 알 수 없는 에러 처리
+        this.logger.error(`Unexpected Error: ${exception}`, {
+            path: request.path,
+            method: request.method,
+            userId: request.user?.id || 'anonymous',
+        });
 
-        // 로깅 - 요청 정보 포함
-        console.error(
-            `[GraphQLError] ${code}: ${message}`,
-            { ...reqInfo, timestamp: new Date().toISOString() },
-            exception.stack,
-        );
-
-        return new GraphQLError(message, {
+        return new GraphQLError('Internal Server Error', {
             extensions: {
-                code,
-                statusCode,
-                timestamp: new Date().toISOString(),
-                reqInfo,
+                code: 'INTERNAL_SERVER_ERROR',
+                path: request.path || 'unknown',
+                method: request.method || 'unknown',
+                userId: request.user?.id || 'anonymous',
             },
         });
-    }
-
-    private getCodeFromStatus(status: number): string {
-        switch (status) {
-            case 400:
-                return 'BAD_REQUEST';
-            case 401:
-                return 'UNAUTHORIZED';
-            case 403:
-                return 'FORBIDDEN';
-            case 404:
-                return 'NOT_FOUND';
-            case 409:
-                return 'CONFLICT';
-            default:
-                return 'INTERNAL_SERVER_ERROR';
-        }
     }
 }
