@@ -11,4 +11,9 @@ export interface IPostsRepository {
      * 게시글 생성
      */
     create(data: CreatePostInput): Promise<Post>;
+
+    /**
+     * 게시글 상세 조회
+     */
+    findOne(postId: number): Promise<Post | null>;
 }

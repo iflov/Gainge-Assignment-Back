@@ -19,6 +19,7 @@ describe('PostsService', () => {
                     useValue: {
                         findAll: jest.fn(),
                         create: jest.fn(),
+                        findOne: jest.fn(),
                     },
                 },
             ],
@@ -70,33 +71,30 @@ describe('PostsService', () => {
         it('게시글을 생성할 수 있어야 한다.', async () => {
             const createPostInput: CreatePostInput = {
                 title: 'Test Title',
-                content: 'Test Content', // content는 선택적 필드
+                content: 'Test Content',
                 authorId: 'user123',
                 password: 'password',
             };
 
-            const hashedPassword = await bcrypt.hash(createPostInput.password, 10);
+            const repositoryCreateSpy = jest
+                .spyOn(repository, 'create')
+                .mockImplementation(async (data) => {
+                    expect(data.password).not.toBe(createPostInput.password);
 
-            const mockPost: Post = {
-                id: 1,
-                title: createPostInput.title,
-                content: createPostInput.content || '', // 선택적 필드로 처리
-                authorId: createPostInput.authorId,
-                password: hashedPassword,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-            };
+                    return {
+                        id: 1,
+                        ...data,
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                    } as Post;
+                });
 
-            jest.spyOn(bcrypt, 'hash').mockImplementation(async () => hashedPassword);
-            jest.spyOn(repository, 'create').mockResolvedValue(mockPost);
+            const bcryptSpy = jest.spyOn(bcrypt, 'hash');
 
-            const result = await service.create(createPostInput);
-            expect(result).toEqual(mockPost);
-            expect(repository.create).toHaveBeenCalledWith(createPostInput);
-            expect(repository.create).toHaveBeenCalledWith({
-                ...createPostInput,
-                password: hashedPassword,
-            });
+            await service.create(createPostInput);
+
+            expect(bcryptSpy).toHaveBeenCalledWith(createPostInput.password, 10);
+            expect(repositoryCreateSpy).toHaveBeenCalled();
         });
 
         it('제목이 비어있으면 게시글을 생성할 수 없어야 한다.', async () => {

@@ -28,4 +28,13 @@ export class PostsRepository implements IPostsRepository {
             },
         });
     }
+
+    /**
+     * 게시글 상세 조회
+     */
+    async findOne(postId: number): Promise<Post | null> {
+        return this.prisma.post.findUnique({
+            where: { id: postId },
+        });
+    }
 }
