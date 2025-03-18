@@ -1,0 +1,48 @@
+// Prisma 버전과 데이터소스 설정
+generator client {
+  provider = "prisma-client-js"
+}
+
+// MySQL 데이터베이스 연결 설정
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// 게시글 모델
+model Post {
+  id        Int           @id @default(autoincrement())
+  title     String        @db.VarChar(200) // 게시글 제목
+  content   String?       @db.Text // 게시글 내용 (선택사항)
+  authorId  String        @db.VarChar(50) // 작성자 ID
+  password  String        @db.VarChar(100) // 작성자 비밀번호
+  createdAt DateTime      @default(now()) // 생성 시간
+  updatedAt DateTime      @updatedAt // 수정 시간
+  comments  PostComment[] // 게시글에 달린 댓글 (1:N 관계)
+
+  // authorId에 인덱스 추가 - 작성자 ID 검증 시 성능 향상
+  @@index([authorId])
+  // 게시글 생성일 내림차순 조회를 위한 인덱스 추가
+  @@index([createdAt(sort: Desc)])
+  @@map("posts")
+}
+
+// 게시글 댓글 모델
+model PostComment {
+  id        Int      @id @default(autoincrement())
+  content   String   @db.Text // 댓글 내용
+  authorId  String   @db.VarChar(50) // 작성자 ID
+  password  String   @db.VarChar(100) // 작성자 비밀번호
+  postId    Int // 게시글 ID (관계 설정)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade) // 게시글과의 관계
+  createdAt DateTime @default(now()) // 생성 시간
+  updatedAt DateTime @updatedAt // 수정 시간
+
+  // postId에 인덱스 추가 - 특정 게시글의 댓글 조회 성능 향상
+  @@index([postId])
+  // authorId에 인덱스 추가 - 작성자 ID 검증 시 성능 향상
+  @@index([authorId])
+  // 댓글 생성일 내림차순 조회를 위한 인덱스 추가
+  @@index([createdAt(sort: Desc)])
+  @@map("post_comments")
+}
