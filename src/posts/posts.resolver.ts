@@ -1,6 +1,8 @@
-import { Query, Resolver } from '@nestjs/graphql';
+// src/posts/posts.resolver.ts
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { PostsService } from './posts.service';
 import { Post } from './entities/posts.model';
+import { CreatePostInput } from './dtos/create-post.input';
 
 @Resolver(() => Post)
 export class PostsResolver {
@@ -12,6 +14,16 @@ export class PostsResolver {
      */
     @Query(() => [Post], { name: 'posts' })
     async getPosts(): Promise<Post[]> {
-        return this.postsService.findAll(); // 서비스에서 모든 게시글 조회
+        return this.postsService.findAll();
+    }
+
+    /**
+     * 게시글 생성
+     * @param input 생성할 게시글 정보
+     * @returns 생성된 게시글
+     */
+    @Mutation(() => Post, { name: 'create_post' })
+    async createPost(@Args('input') input: CreatePostInput): Promise<Post> {
+        return this.postsService.create(input);
     }
 }

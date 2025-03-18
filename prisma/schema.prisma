@@ -13,7 +13,7 @@ datasource db {
 model Post {
   id        Int           @id @default(autoincrement())
   title     String        @db.VarChar(200) // 게시글 제목
-  content   String        @db.Text // 게시글 내용
+  content   String?       @db.Text // 게시글 내용 (선택사항)
   authorId  String        @db.VarChar(50) // 작성자 ID
   password  String        @db.VarChar(100) // 작성자 비밀번호
   createdAt DateTime      @default(now()) // 생성 시간
