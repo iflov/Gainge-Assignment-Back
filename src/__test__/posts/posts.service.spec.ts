@@ -4,6 +4,7 @@ import { BadRequestException } from '@nestjs/common';
 import { IPostsRepository } from '../../posts/interfaces/posts-repository.interface';
 import { CreatePostInput } from '../../posts/dtos/create-post.input';
 import { Post } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 describe('PostsService', () => {
     let service: PostsService;
@@ -71,24 +72,31 @@ describe('PostsService', () => {
                 title: 'Test Title',
                 content: 'Test Content', // content는 선택적 필드
                 authorId: 'user123',
-                password: 'hashedpassword123',
+                password: 'password',
             };
+
+            const hashedPassword = await bcrypt.hash(createPostInput.password, 10);
 
             const mockPost: Post = {
                 id: 1,
                 title: createPostInput.title,
                 content: createPostInput.content || '', // 선택적 필드로 처리
                 authorId: createPostInput.authorId,
-                password: createPostInput.password,
+                password: hashedPassword,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             };
 
+            jest.spyOn(bcrypt, 'hash').mockImplementation(async () => hashedPassword);
             jest.spyOn(repository, 'create').mockResolvedValue(mockPost);
 
             const result = await service.create(createPostInput);
             expect(result).toEqual(mockPost);
             expect(repository.create).toHaveBeenCalledWith(createPostInput);
+            expect(repository.create).toHaveBeenCalledWith({
+                ...createPostInput,
+                password: hashedPassword,
+            });
         });
 
         it('제목이 비어있으면 게시글을 생성할 수 없어야 한다.', async () => {
@@ -136,5 +144,36 @@ describe('PostsService', () => {
         jest.spyOn(repository, 'create').mockRejectedValue(new Error('Database error'));
 
         await expect(service.create(createPostInput)).rejects.toThrow('Database error');
+    });
+
+    describe('findOne', () => {
+        it('존재하는 게시글을 조회할 수 있어야 한다.', async () => {
+            const mockPost: Post = {
+                id: 1,
+                title: 'test post title',
+                content: 'test post content',
+                authorId: 'user123',
+                password: 'hashedPassword',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            jest.spyOn(repository, 'findOne').mockResolvedValue(mockPost);
+
+            const result = await service.findOne(1);
+            expect(result).toEqual(mockPost);
+        });
+
+        it('존재하지 않는 게시글 조회 시 예외를 던져야 한다.', async () => {
+            jest.spyOn(repository, 'findOne').mockResolvedValue(null);
+
+            await expect(service.findOne(999)).rejects.toThrow('해당 게시글을 찾을 수 없습니다.');
+        });
+
+        it('데이터베이스 오류가 발생하면 예외를 던져야 한다.', async () => {
+            jest.spyOn(repository, 'findOne').mockRejectedValue(new Error('Database error'));
+
+            await expect(service.findOne(1)).rejects.toThrow('Database error');
+        });
     });
 });
