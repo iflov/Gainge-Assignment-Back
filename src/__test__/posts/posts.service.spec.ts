@@ -11,9 +11,9 @@ describe('PostsService', () => {
             providers: [
                 PostsService,
                 {
-                    provide: PostsRepository, // ✅ Mock Repository 등록
+                    provide: PostsRepository, // Mock Repository 등록
                     useValue: {
-                        findAll: jest.fn(), // ✅ findAll()을 Mocking
+                        findAll: jest.fn(), // findAll()을 Mocking
                     },
                 },
             ],
@@ -44,5 +44,20 @@ describe('PostsService', () => {
 
         const result = await service.findAll();
         expect(result).toEqual(mockPosts);
+    });
+
+    it('게시글이 없을 때 빈 배열을 반환해야 한다', async () => {
+        const emptyPosts = [];
+        jest.spyOn(repository, 'findAll').mockResolvedValue(emptyPosts);
+
+        const result = await service.findAll();
+        expect(result).toEqual([]);
+        expect(result.length).toBe(0);
+    });
+
+    it('findAll 메서드 호출 실패 시 예외를 처리해야 한다', async () => {
+        jest.spyOn(repository, 'findAll').mockRejectedValue(new Error('Database error'));
+
+        await expect(service.findAll()).rejects.toThrow('Database error');
     });
 });
