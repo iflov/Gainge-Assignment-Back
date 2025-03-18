@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  mysql-db:
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: test
+      TZ: Asia/Seoul
+    ports:
+      - "3306:3306"
+  postgres-db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD: test
+      TZ: Asia/Seoul
+    ports:
+      - "5432:5432"
