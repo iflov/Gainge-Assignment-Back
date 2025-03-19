@@ -8,39 +8,31 @@ import { CreatePostInput } from './dtos/create-post.input';
 export class PostsRepository implements IPostsRepository {
     constructor(private readonly prisma: PrismaService) {}
 
-    /**
-     * 모든 게시글 조회
-     */
+    // DB에서 게시글 전체 조회
     async findAll(): Promise<Post[]> {
         return this.prisma.post.findMany();
     }
 
-    /**
-     * 게시글 생성
-     */
+    // DB에서 게시글 생성
     async create(data: CreatePostInput & { password: string }): Promise<Post> {
         return this.prisma.post.create({
             data: {
                 title: data.title,
-                content: data.content ?? null,
+                content: data.content ?? null, // content는 선택사항이므로 Null로 가능하게 코딩
                 authorId: data.authorId,
                 password: data.password,
             },
         });
     }
 
-    /**
-     * 게시글 상세 조회
-     */
+    // DB에 postId를 기준으로 게시글 상세 조회
     async findOne(postId: number): Promise<Post | null> {
         return this.prisma.post.findUnique({
             where: { id: postId },
         });
     }
 
-    /**
-     * 게시글 수정
-     */
+    // DB에서 postId를 기준으로 게시글 수정
     async update(id: number, data: Partial<Pick<Post, 'title' | 'content'>>): Promise<Post> {
         return this.prisma.post.update({
             where: { id },
@@ -48,9 +40,7 @@ export class PostsRepository implements IPostsRepository {
         });
     }
 
-    /**
-     * 게시글 삭제
-     */
+    // DB에서 postId를 기준으로 게시글 삭제
     async delete(id: number): Promise<Post> {
         return this.prisma.post.delete({
             where: { id },

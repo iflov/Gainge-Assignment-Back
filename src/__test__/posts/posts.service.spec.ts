@@ -100,39 +100,6 @@ describe('PostsService', () => {
             expect(bcryptSpy).toHaveBeenCalledWith(createPostInput.password, 10);
             expect(repositoryCreateSpy).toHaveBeenCalled();
         });
-
-        it('제목이 비어있으면 게시글을 생성할 수 없어야 한다.', async () => {
-            const createPostInput: CreatePostInput = {
-                title: '', // 제목 없음
-                content: 'Test Content',
-                authorId: 'user123',
-                password: 'hashedpassword123',
-            };
-
-            await expect(service.create(createPostInput)).rejects.toThrow(BadRequestException);
-        });
-
-        it('비밀번호가 비어있으면 게시글을 생성할 수 없어야 한다.', async () => {
-            const createPostInput: CreatePostInput = {
-                title: 'Valid Title',
-                content: 'Test Content',
-                authorId: 'user123',
-                password: '', // 비밀번호 없음
-            };
-
-            await expect(service.create(createPostInput)).rejects.toThrow(BadRequestException);
-        });
-
-        it('작성자 아이디가 없으면 게시글을 생성할 수 없어야 한다.', async () => {
-            const createPostInput: CreatePostInput = {
-                title: 'Test Title',
-                content: 'Test Content',
-                authorId: '', // 작성자 아이디 없음,
-                password: 'hashedpassword123',
-            };
-
-            await expect(service.create(createPostInput)).rejects.toThrow(BadRequestException);
-        });
     });
 
     it('데이터베이스 오류가 발생하면 예외를 던져야 한다.', async () => {

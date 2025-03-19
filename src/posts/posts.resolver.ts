@@ -9,30 +9,25 @@ import { DeletePostInput } from './dtos/delete-post.input';
 export class PostsResolver {
     constructor(private readonly postsService: PostsService) {}
 
-    /**
-     * 게시글 목록 조회
-     * @returns 모든 게시글 배열 반환
-     */
+    // 게시글 전체 조회
     @Query(() => [Post], { name: 'posts' })
     async getPosts(): Promise<Post[]> {
         return this.postsService.findAll();
     }
 
-    @Query(() => Post) // 추가된 부분
-    post(@Args('id', { type: () => Int }) id: number): Promise<Post> {
+    // 게시글 상세 조회
+    @Query(() => Post)
+    post(@Args('id', { type: () => Int }) id: number): Promise<Post | null> {
         return this.postsService.findOne(id);
     }
 
-    /**
-     * 게시글 생성
-     * @param input 생성할 게시글 정보
-     * @returns 생성된 게시글
-     */
+    // 게시글 생성
     @Mutation(() => Post, { name: 'create_post' })
     async createPost(@Args('input') input: CreatePostInput): Promise<Post> {
         return this.postsService.create(input);
     }
 
+    // 게시글 수정
     @Mutation(() => Post)
     async updatePost(
         @Args('id', { type: () => Int }) id: number,
@@ -41,6 +36,7 @@ export class PostsResolver {
         return this.postsService.update(id, input);
     }
 
+    // 게시글 삭제
     @Mutation(() => Post)
     async deletePost(
         @Args('id', { type: () => Int }) id: number,

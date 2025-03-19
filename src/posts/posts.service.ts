@@ -13,46 +13,34 @@ export class PostsService {
         private readonly postsRepository: IPostsRepository,
     ) {}
 
+    // 게시글 전체 조회
     async findAll(): Promise<Post[]> {
         return this.postsRepository.findAll();
     }
 
+    // 게시글 생성
     async create(data: CreatePostInput): Promise<Post> {
-        if (!data.title) {
-            throw new BadRequestException('제목은 필수입니다.');
-        }
-        if (!data.password) {
-            throw new BadRequestException('비밀번호는 필수입니다.');
-        }
-        if (!data.authorId) {
-            throw new BadRequestException('작성자 ID는 필수입니다.');
-        }
-
         const hashedPassword = await bcrypt.hash(data.password, 10);
 
         return this.postsRepository.create({
             ...data,
-            content: data.content ?? null,
+            content: data.content ?? null, // content가 없는 경우엔 null로 전달하기 위해서 코딩
             password: hashedPassword,
         });
     }
 
-    async findOne(postId: number): Promise<Post> {
-        const post = await this.postsRepository.findOne(postId);
-
-        if (!post) {
-            throw new NotFoundException('해당 게시글을 찾을 수 없습니다.');
-        }
-
-        return post;
+    // 게시글 상세 조회
+    async findOne(postId: number): Promise<Post | null> {
+        return this.postsRepository.findOne(postId);
     }
 
+    // 게시글 수정
     async update(postId: number, data: UpdatePostInput): Promise<Post> {
         // 게시글 존재 확인
         const existingPost = await this.postsRepository.findOne(postId);
 
         if (!existingPost) {
-            throw new NotFoundException('해당 게시글을 찾을 수 없습니다.');
+            throw new NotFoundException('해당 게시글을 찾을 수 없습니다.'); // 게시글 수정을 위해서 해당 id의 게시글이 존재하는지 확인이 필요하다
         }
 
         // 작성자 ID 일치 확인
