@@ -32,7 +32,7 @@ GraphQL API를 NestJS 프레임워크를 이용하여 구현한 백엔드 서버
 │   ├── app.resolver.ts    # 앱 리졸버
 │   ├── app.service.ts     # 앱 서비스
 │   └── main.ts            # 애플리케이션 진입점
-└── test/                  # E2E 테스트
+
 ```
 
 ## 설치 및 실행 방법
