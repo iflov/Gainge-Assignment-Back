@@ -20,6 +20,7 @@ describe('PostCommentsRepository', () => {
                             create: jest.fn(),
                             findUnique: jest.fn(),
                             update: jest.fn(),
+                            delete: jest.fn(),
                         },
                     },
                 },
@@ -159,6 +160,40 @@ describe('PostCommentsRepository', () => {
             await expect(repository.update(commentId, updateData)).rejects.toThrow(
                 'Record not found',
             );
+        });
+    });
+
+    describe('delete', () => {
+        it('특정 댓글을 성공적으로 삭제할 수 있어야 한다.', async () => {
+            const commentId = 1;
+            const mockDeletedComment: PostComment = {
+                id: commentId,
+                content: '삭제될 댓글',
+                authorId: 'user123',
+                password: 'hashedpassword',
+                postId: 1,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            jest.spyOn(prismaService.postComment, 'delete').mockResolvedValue(mockDeletedComment);
+
+            const result = await repository.delete(commentId);
+
+            expect(result).toEqual(mockDeletedComment);
+            expect(prismaService.postComment.delete).toHaveBeenCalledWith({
+                where: { id: commentId },
+            });
+        });
+
+        it('존재하지 않는 댓글 삭제 시 예외가 발생해야 한다.', async () => {
+            const commentId = 999;
+
+            jest.spyOn(prismaService.postComment, 'delete').mockRejectedValue(
+                new Error('Record not found'),
+            );
+
+            await expect(repository.delete(commentId)).rejects.toThrow('Record not found');
         });
     });
 });

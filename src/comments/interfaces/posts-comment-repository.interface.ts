@@ -21,4 +21,9 @@ export interface IPostCommentsRepository {
      * 댓글 수정
      */
     update(id: number, data: Partial<Pick<PostComment, 'content'>>): Promise<PostComment>;
+
+    /**
+     * 댓글 삭제
+     */
+    delete(id: number): Promise<PostComment>;
 }

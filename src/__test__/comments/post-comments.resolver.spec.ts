@@ -4,8 +4,9 @@ import { CommentsService } from '../../comments/comments.service';
 import { CreatePostCommentInput } from '../../comments/dtos/create-post-comment.input';
 import { PostComment } from '../../comments/entities/post-comment.model';
 import { Post } from '../../posts/entities/posts.model';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { UpdatePostCommentInput } from '../../comments/dtos/update-post-comment.input';
+import { DeletePostCommentInput } from '../../comments/dtos/delete-post-comment.input';
 
 describe('CommentsResolver', () => {
     let resolver: CommentsResolver;
@@ -20,7 +21,8 @@ describe('CommentsResolver', () => {
                     useValue: {
                         create: jest.fn(),
                         findByPostId: jest.fn(),
-                        update: jest.fn(), // update 메서드 추가
+                        update: jest.fn(),
+                        delete: jest.fn(),
                     },
                 },
             ],
@@ -156,6 +158,92 @@ describe('CommentsResolver', () => {
 
             await expect(resolver.updatePostComment(commentId, updateCommentInput)).rejects.toThrow(
                 NotFoundException,
+            );
+        });
+    });
+
+    describe('delete_post_comment', () => {
+        it('댓글을 성공적으로 삭제할 수 있어야 한다.', async () => {
+            const commentId = 1;
+            const deleteCommentInput: DeletePostCommentInput = {
+                authorId: 'user123',
+                password: 'password',
+            };
+
+            const mockPost: Post = {
+                id: 1,
+                title: '테스트 게시글',
+                content: '게시글 내용',
+                authorId: 'postAuthor',
+                password: 'testPassword',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            const mockDeletedComment: PostComment = {
+                id: commentId,
+                content: '삭제될 댓글',
+                authorId: 'user123',
+                password: 'hashedpassword',
+                postId: 1,
+                post: mockPost,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            jest.spyOn(service, 'delete').mockResolvedValue(mockDeletedComment);
+
+            const result = await resolver.deletePostComment(commentId, deleteCommentInput);
+
+            expect(result).toEqual(mockDeletedComment);
+            expect(service.delete).toHaveBeenCalledWith(commentId, deleteCommentInput);
+        });
+
+        it('존재하지 않는 댓글 삭제 시 NotFoundException을 던져야 한다.', async () => {
+            const commentId = 999;
+            const deleteCommentInput: DeletePostCommentInput = {
+                authorId: 'user123',
+                password: 'password',
+            };
+
+            jest.spyOn(service, 'delete').mockRejectedValue(
+                new NotFoundException('해당 댓글을 찾을 수 없습니다.'),
+            );
+
+            await expect(resolver.deletePostComment(commentId, deleteCommentInput)).rejects.toThrow(
+                NotFoundException,
+            );
+        });
+
+        it('작성자 ID가 일치하지 않으면 BadRequestException을 던져야 한다.', async () => {
+            const commentId = 1;
+            const deleteCommentInput: DeletePostCommentInput = {
+                authorId: 'wrong_user',
+                password: 'password',
+            };
+
+            jest.spyOn(service, 'delete').mockRejectedValue(
+                new BadRequestException('댓글 작성자만 삭제할 수 있습니다.'),
+            );
+
+            await expect(resolver.deletePostComment(commentId, deleteCommentInput)).rejects.toThrow(
+                BadRequestException,
+            );
+        });
+
+        it('비밀번호가 일치하지 않으면 BadRequestException을 던져야 한다.', async () => {
+            const commentId = 1;
+            const deleteCommentInput: DeletePostCommentInput = {
+                authorId: 'user123',
+                password: 'wrong_password',
+            };
+
+            jest.spyOn(service, 'delete').mockRejectedValue(
+                new BadRequestException('비밀번호가 일치하지 않습니다.'),
+            );
+
+            await expect(resolver.deletePostComment(commentId, deleteCommentInput)).rejects.toThrow(
+                BadRequestException,
             );
         });
     });

@@ -9,6 +9,7 @@ import { Post } from '../../posts/entities/posts.model';
 import { PostComment as GraphQLPostComment } from '../../comments/entities/post-comment.model';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { UpdatePostCommentInput } from '../../comments/dtos/update-post-comment.input';
+import { DeletePostCommentInput } from '../../comments/dtos/delete-post-comment.input';
 
 describe('CommentsService', () => {
     let service: CommentsService;
@@ -26,6 +27,7 @@ describe('CommentsService', () => {
                         findByPostId: jest.fn(),
                         findOne: jest.fn(),
                         update: jest.fn(),
+                        delete: jest.fn(),
                     },
                 },
                 {
@@ -234,6 +236,102 @@ describe('CommentsService', () => {
             jest.spyOn(commentsRepository, 'findOne').mockResolvedValue(existingComment);
 
             await expect(service.update(commentId, updateCommentInput)).rejects.toThrow(
+                BadRequestException,
+            );
+        });
+    });
+
+    describe('delete', () => {
+        const commentId = 1;
+        const deleteCommentInput: DeletePostCommentInput = {
+            authorId: 'user123',
+            password: 'password',
+        };
+
+        it('댓글을 성공적으로 삭제할 수 있어야 한다.', async () => {
+            const hashedPassword = await bcrypt.hash('password', 10);
+            const mockPost: Post = {
+                id: 1,
+                title: '테스트 게시글',
+                content: '게시글 내용',
+                authorId: 'postAuthor',
+                password: 'postPassword',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            const existingComment: PostComment = {
+                id: commentId,
+                content: '원본 댓글',
+                authorId: 'user123',
+                password: hashedPassword,
+                postId: 1,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            const mockDeletedComment: PostComment = {
+                ...existingComment,
+            };
+
+            jest.spyOn(commentsRepository, 'findOne').mockResolvedValue(existingComment);
+            jest.spyOn(postsRepository, 'findOne').mockResolvedValue(mockPost);
+            jest.spyOn(commentsRepository, 'delete').mockResolvedValue(mockDeletedComment);
+
+            const result = await service.delete(commentId, deleteCommentInput);
+
+            expect(result).toEqual(
+                expect.objectContaining({
+                    id: commentId,
+                    post: mockPost,
+                }),
+            );
+            expect(commentsRepository.findOne).toHaveBeenCalledWith(commentId);
+            expect(commentsRepository.delete).toHaveBeenCalledWith(commentId);
+        });
+
+        it('존재하지 않는 댓글 삭제 시 NotFoundException을 던져야 한다.', async () => {
+            jest.spyOn(commentsRepository, 'findOne').mockResolvedValue(null);
+
+            await expect(service.delete(commentId, deleteCommentInput)).rejects.toThrow(
+                NotFoundException,
+            );
+        });
+
+        it('작성자 ID가 일치하지 않으면 BadRequestException을 던져야 한다.', async () => {
+            const hashedPassword = await bcrypt.hash('password', 10);
+            const existingComment: PostComment = {
+                id: commentId,
+                content: '원본 댓글',
+                authorId: 'different_user',
+                password: hashedPassword,
+                postId: 1,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            jest.spyOn(commentsRepository, 'findOne').mockResolvedValue(existingComment);
+
+            await expect(service.delete(commentId, deleteCommentInput)).rejects.toThrow(
+                BadRequestException,
+            );
+        });
+
+        it('비밀번호가 일치하지 않으면 BadRequestException을 던져야 한다.', async () => {
+            const hashedPassword = await bcrypt.hash('different_password', 10);
+            const existingComment: PostComment = {
+                id: commentId,
+                content: '원본 댓글',
+                authorId: 'user123',
+                password: hashedPassword,
+                postId: 1,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            jest.spyOn(commentsRepository, 'findOne').mockResolvedValue(existingComment);
+
+            await expect(service.delete(commentId, deleteCommentInput)).rejects.toThrow(
                 BadRequestException,
             );
         });

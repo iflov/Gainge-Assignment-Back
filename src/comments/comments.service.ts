@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { IPostCommentsRepository } from './interfaces/posts-comment-repository.interface';
 import { PostComment as GraphQLPostComment } from './entities/post-comment.model';
 import { UpdatePostCommentInput } from './dtos/update-post-comment.input';
+import { DeletePostCommentInput } from './dtos/delete-post-comment.input';
 
 @Injectable()
 export class CommentsService {
@@ -100,6 +101,37 @@ export class CommentsService {
         // GraphQL 모델로 변환
         return {
             ...updatedComment,
+            post: post as Post,
+        };
+    }
+
+    async delete(commentId: number, data: DeletePostCommentInput): Promise<GraphQLPostComment> {
+        // 댓글 존재 확인
+        const existingComment = await this.commentsRepository.findOne(commentId);
+        if (!existingComment) {
+            throw new NotFoundException('해당 댓글을 찾을 수 없습니다.');
+        }
+
+        // 작성자 ID 일치 확인
+        if (existingComment.authorId !== data.authorId) {
+            throw new BadRequestException('댓글 작성자만 삭제할 수 있습니다.');
+        }
+
+        // 비밀번호 일치 확인
+        const isPasswordValid = await bcrypt.compare(data.password, existingComment.password);
+        if (!isPasswordValid) {
+            throw new BadRequestException('비밀번호가 일치하지 않습니다.');
+        }
+
+        // 게시글 정보 조회
+        const post = await this.postsRepository.findOne(existingComment.postId);
+
+        // 댓글 삭제
+        const deletedComment = await this.commentsRepository.delete(commentId);
+
+        // GraphQL 모델로 변환
+        return {
+            ...deletedComment,
             post: post as Post,
         };
     }

@@ -49,4 +49,13 @@ export class PostCommentsRepository implements IPostCommentsRepository {
             data,
         });
     }
+
+    /**
+     * 댓글 삭제
+     */
+    async delete(id: number): Promise<PostComment> {
+        return this.prisma.postComment.delete({
+            where: { id },
+        });
+    }
 }

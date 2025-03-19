@@ -3,6 +3,7 @@ import { CommentsService } from './comments.service';
 import { CreatePostCommentInput } from './dtos/create-post-comment.input';
 import { PostComment } from './entities/post-comment.model';
 import { UpdatePostCommentInput } from './dtos/update-post-comment.input';
+import { DeletePostCommentInput } from './dtos/delete-post-comment.input';
 
 @Resolver(() => PostComment)
 export class CommentsResolver {
@@ -26,5 +27,13 @@ export class CommentsResolver {
         @Args('input') input: UpdatePostCommentInput,
     ): Promise<PostComment> {
         return this.commentsService.update(id, input);
+    }
+
+    @Mutation(() => PostComment)
+    async deletePostComment(
+        @Args('id', { type: () => Int }) id: number,
+        @Args('input') input: DeletePostCommentInput,
+    ): Promise<PostComment> {
+        return this.commentsService.delete(id, input);
     }
 }
