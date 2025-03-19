@@ -55,7 +55,7 @@ export class CommentsService {
         // 게시글 존재 확인
         const post = await this.postsRepository.findOne(postId);
         if (!post) {
-            throw new NotFoundException('해당 게시글을 찾을 수 없습니다.');
+            throw new NotFoundException('해당 게시글을 찾을 수 없습니다.'); // post repository에서 해당 id의 게시물이 없으면 null처리하므로 예외처리 추가
         }
 
         // 댓글과 게시물 정보 조회

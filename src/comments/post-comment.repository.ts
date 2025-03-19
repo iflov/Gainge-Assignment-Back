@@ -8,12 +8,14 @@ import { IPostCommentsRepository } from './interfaces/posts-comment-repository.i
 export class PostCommentsRepository implements IPostCommentsRepository {
     constructor(private readonly prisma: PrismaService) {}
 
+    // DB에서 게시글의 Id를 기준으로 게시글과 댓글의 id 찾기
     async findByPostId(postId: number): Promise<PostComment[]> {
         return this.prisma.postComment.findMany({
             where: { postId },
         });
     }
 
+    // DB에서 댓글 생성
     async create(data: CreatePostCommentInput & { password: string }): Promise<PostComment> {
         return this.prisma.postComment.create({
             data: {
