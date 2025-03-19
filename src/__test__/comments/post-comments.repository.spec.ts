@@ -19,6 +19,7 @@ describe('PostCommentsRepository', () => {
                             findMany: jest.fn(),
                             create: jest.fn(),
                             findUnique: jest.fn(),
+                            update: jest.fn(),
                         },
                     },
                 },
@@ -118,6 +119,46 @@ describe('PostCommentsRepository', () => {
             expect(prismaService.postComment.findMany).toHaveBeenCalledWith({
                 where: { postId },
             });
+        });
+    });
+
+    describe('update', () => {
+        it('댓글을 성공적으로 수정할 수 있어야 한다.', async () => {
+            const commentId = 1;
+            const updateData = { content: '수정된 댓글 내용' };
+
+            const mockUpdatedComment: PostComment = {
+                id: commentId,
+                content: '수정된 댓글 내용',
+                authorId: 'user123',
+                password: 'hashedpassword',
+                postId: 1,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            jest.spyOn(prismaService.postComment, 'update').mockResolvedValue(mockUpdatedComment);
+
+            const result = await repository.update(commentId, updateData);
+
+            expect(result).toEqual(mockUpdatedComment);
+            expect(prismaService.postComment.update).toHaveBeenCalledWith({
+                where: { id: commentId },
+                data: updateData,
+            });
+        });
+
+        it('존재하지 않는 댓글 수정 시 예외가 발생해야 한다.', async () => {
+            const commentId = 999;
+            const updateData = { content: '수정된 댓글 내용' };
+
+            jest.spyOn(prismaService.postComment, 'update').mockRejectedValue(
+                new Error('Record not found'),
+            );
+
+            await expect(repository.update(commentId, updateData)).rejects.toThrow(
+                'Record not found',
+            );
         });
     });
 });

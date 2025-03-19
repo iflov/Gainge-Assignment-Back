@@ -39,4 +39,14 @@ export class PostCommentsRepository implements IPostCommentsRepository {
             where: { id: commentId },
         });
     }
+
+    /**
+     * 댓글 수정
+     */
+    async update(id: number, data: Partial<Pick<PostComment, 'content'>>): Promise<PostComment> {
+        return this.prisma.postComment.update({
+            where: { id },
+            data,
+        });
+    }
 }

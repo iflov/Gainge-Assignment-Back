@@ -16,4 +16,9 @@ export interface IPostCommentsRepository {
      * 특정 댓글 상세 조회
      */
     findOne(commentId: number): Promise<PostComment | null>;
+
+    /**
+     * 댓글 수정
+     */
+    update(id: number, data: Partial<Pick<PostComment, 'content'>>): Promise<PostComment>;
 }

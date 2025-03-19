@@ -7,6 +7,8 @@ import { CreatePostCommentInput } from '../../comments/dtos/create-post-comment.
 import { IPostCommentsRepository } from '../../comments/interfaces/posts-comment-repository.interface';
 import { Post } from '../../posts/entities/posts.model';
 import { PostComment as GraphQLPostComment } from '../../comments/entities/post-comment.model';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { UpdatePostCommentInput } from '../../comments/dtos/update-post-comment.input';
 
 describe('CommentsService', () => {
     let service: CommentsService;
@@ -23,6 +25,7 @@ describe('CommentsService', () => {
                         create: jest.fn(),
                         findByPostId: jest.fn(),
                         findOne: jest.fn(),
+                        update: jest.fn(),
                     },
                 },
                 {
@@ -132,5 +135,107 @@ describe('CommentsService', () => {
         });
 
         // 나머지 테스트 코드는 동일
+    });
+
+    describe('update', () => {
+        const commentId = 1;
+        const updateCommentInput: UpdatePostCommentInput = {
+            content: '수정된 댓글',
+            authorId: 'user123',
+            password: 'password',
+            postId: 1,
+        };
+
+        it('댓글을 성공적으로 수정할 수 있어야 한다.', async () => {
+            const hashedPassword = await bcrypt.hash('password', 10);
+            const mockPost: Post = {
+                id: 1,
+                title: '테스트 게시글',
+                content: '게시글 내용',
+                authorId: 'postAuthor',
+                password: 'postPassword',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            const existingComment: PostComment = {
+                id: commentId,
+                content: '원본 댓글',
+                authorId: 'user123',
+                password: hashedPassword,
+                postId: 1,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            const mockUpdatedComment: PostComment = {
+                ...existingComment,
+                content: '수정된 댓글',
+            };
+
+            jest.spyOn(commentsRepository, 'findOne').mockResolvedValue(existingComment);
+            jest.spyOn(postsRepository, 'findOne').mockResolvedValue(mockPost);
+            jest.spyOn(commentsRepository, 'update').mockResolvedValue(mockUpdatedComment);
+
+            const result = await service.update(commentId, updateCommentInput);
+
+            expect(result).toEqual(
+                expect.objectContaining({
+                    id: commentId,
+                    content: '수정된 댓글',
+                    post: mockPost,
+                }),
+            );
+            expect(commentsRepository.findOne).toHaveBeenCalledWith(commentId);
+            expect(commentsRepository.update).toHaveBeenCalledWith(commentId, {
+                content: updateCommentInput.content,
+            });
+        });
+
+        it('존재하지 않는 댓글 수정 시 NotFoundException을 던져야 한다.', async () => {
+            jest.spyOn(commentsRepository, 'findOne').mockResolvedValue(null);
+
+            await expect(service.update(commentId, updateCommentInput)).rejects.toThrow(
+                NotFoundException,
+            );
+        });
+
+        it('작성자 ID가 일치하지 않으면 BadRequestException을 던져야 한다.', async () => {
+            const hashedPassword = await bcrypt.hash('password', 10);
+            const existingComment: PostComment = {
+                id: commentId,
+                content: '원본 댓글',
+                authorId: 'different_user',
+                password: hashedPassword,
+                postId: 1,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            jest.spyOn(commentsRepository, 'findOne').mockResolvedValue(existingComment);
+
+            await expect(service.update(commentId, updateCommentInput)).rejects.toThrow(
+                BadRequestException,
+            );
+        });
+
+        it('비밀번호가 일치하지 않으면 BadRequestException을 던져야 한다.', async () => {
+            const hashedPassword = await bcrypt.hash('different_password', 10);
+            const existingComment: PostComment = {
+                id: commentId,
+                content: '원본 댓글',
+                authorId: 'user123',
+                password: hashedPassword,
+                postId: 1,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            jest.spyOn(commentsRepository, 'findOne').mockResolvedValue(existingComment);
+
+            await expect(service.update(commentId, updateCommentInput)).rejects.toThrow(
+                BadRequestException,
+            );
+        });
     });
 });

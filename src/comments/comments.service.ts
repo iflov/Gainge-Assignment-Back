@@ -5,6 +5,7 @@ import { CreatePostCommentInput } from './dtos/create-post-comment.input';
 import * as bcrypt from 'bcrypt';
 import { IPostCommentsRepository } from './interfaces/posts-comment-repository.interface';
 import { PostComment as GraphQLPostComment } from './entities/post-comment.model';
+import { UpdatePostCommentInput } from './dtos/update-post-comment.input';
 
 @Injectable()
 export class CommentsService {
@@ -64,5 +65,42 @@ export class CommentsService {
             ...comment,
             post: post as Post,
         }));
+    }
+
+    async update(commentId: number, data: UpdatePostCommentInput): Promise<GraphQLPostComment> {
+        // 댓글 존재 확인
+        const existingComment = await this.commentsRepository.findOne(commentId);
+        if (!existingComment) {
+            throw new NotFoundException('해당 댓글을 찾을 수 없습니다.');
+        }
+
+        // 작성자 ID 일치 확인
+        if (existingComment.authorId !== data.authorId) {
+            throw new BadRequestException('댓글 작성자만 수정할 수 있습니다.');
+        }
+
+        // 비밀번호 일치 확인
+        const isPasswordValid = await bcrypt.compare(data.password, existingComment.password);
+        if (!isPasswordValid) {
+            throw new BadRequestException('비밀번호가 일치하지 않습니다.');
+        }
+
+        // 업데이트할 데이터 준비
+        const updateData: Partial<Pick<GraphQLPostComment, 'content'>> = {};
+        if (data.content !== undefined) {
+            updateData.content = data.content;
+        }
+
+        // 댓글 업데이트
+        const updatedComment = await this.commentsRepository.update(commentId, updateData);
+
+        // 게시글 정보 조회
+        const post = await this.postsRepository.findOne(existingComment.postId);
+
+        // GraphQL 모델로 변환
+        return {
+            ...updatedComment,
+            post: post as Post,
+        };
     }
 }
