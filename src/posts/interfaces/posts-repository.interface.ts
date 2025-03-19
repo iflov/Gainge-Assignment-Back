@@ -10,7 +10,7 @@ export interface IPostsRepository {
     /**
      * 게시글 생성
      */
-    create(data: CreatePostInput): Promise<Post>;
+    create(data: CreatePostInput & { password: string }): Promise<Post>;
 
     /**
      * 게시글 상세 조회
@@ -21,4 +21,10 @@ export interface IPostsRepository {
      * 게시글 수정
      */
     update(id: number, data: Partial<Pick<Post, 'title' | 'content'>>): Promise<Post>;
+
+    /**
+     * 게시글 삭제
+     * @param id 삭제할 게시글 ID
+     */
+    delete(id: number): Promise<Post>;
 }

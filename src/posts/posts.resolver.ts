@@ -3,6 +3,7 @@ import { PostsService } from './posts.service';
 import { Post } from './entities/posts.model';
 import { CreatePostInput } from './dtos/create-post.input';
 import { UpdatePostInput } from './dtos/update-post.input';
+import { DeletePostInput } from './dtos/delete-post.input';
 
 @Resolver(() => Post)
 export class PostsResolver {
@@ -38,5 +39,13 @@ export class PostsResolver {
         @Args('input') input: UpdatePostInput,
     ): Promise<Post> {
         return this.postsService.update(id, input);
+    }
+
+    @Mutation(() => Post)
+    async deletePost(
+        @Args('id', { type: () => Int }) id: number,
+        @Args('input') input: DeletePostInput,
+    ): Promise<Post> {
+        return this.postsService.delete(id, input);
     }
 }

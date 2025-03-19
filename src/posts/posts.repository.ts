@@ -18,7 +18,7 @@ export class PostsRepository implements IPostsRepository {
     /**
      * 게시글 생성
      */
-    async create(data: CreatePostInput): Promise<Post> {
+    async create(data: CreatePostInput & { password: string }): Promise<Post> {
         return this.prisma.post.create({
             data: {
                 title: data.title,
@@ -38,10 +38,22 @@ export class PostsRepository implements IPostsRepository {
         });
     }
 
-    async update(id: number, data: Partial<Post>): Promise<Post> {
+    /**
+     * 게시글 수정
+     */
+    async update(id: number, data: Partial<Pick<Post, 'title' | 'content'>>): Promise<Post> {
         return this.prisma.post.update({
             where: { id },
             data,
+        });
+    }
+
+    /**
+     * 게시글 삭제
+     */
+    async delete(id: number): Promise<Post> {
+        return this.prisma.post.delete({
+            where: { id },
         });
     }
 }

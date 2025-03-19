@@ -6,6 +6,7 @@ import { CreatePostInput } from '../../posts/dtos/create-post.input';
 import { Post } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { UpdatePostInput } from '../../posts/dtos/update-post.input';
+import { DeletePostInput } from '../../posts/dtos/delete-post.input';
 
 describe('PostsService', () => {
     let service: PostsService;
@@ -22,6 +23,7 @@ describe('PostsService', () => {
                         create: jest.fn(),
                         findOne: jest.fn(),
                         update: jest.fn(),
+                        delete: jest.fn(),
                     },
                 },
             ],
@@ -274,6 +276,80 @@ describe('PostsService', () => {
             jest.spyOn(repository, 'findOne').mockResolvedValue(existingPost);
 
             await expect(service.update(postId, updatePostInput)).rejects.toThrow(
+                BadRequestException,
+            );
+        });
+    });
+
+    describe('delete', () => {
+        const postId = 1;
+        const deletePostInput: DeletePostInput = {
+            authorId: 'user123',
+            password: 'password',
+        };
+
+        it('게시글을 성공적으로 삭제할 수 있어야 한다.', async () => {
+            const hashedPassword = await bcrypt.hash('password', 10);
+            const existingPost: Post = {
+                id: postId,
+                title: '원본 제목',
+                content: '원본 내용',
+                authorId: 'user123',
+                password: hashedPassword,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            jest.spyOn(repository, 'findOne').mockResolvedValue(existingPost);
+            jest.spyOn(repository, 'delete').mockResolvedValue(existingPost);
+
+            const result = await service.delete(postId, deletePostInput);
+
+            expect(result).toEqual(existingPost);
+            expect(repository.delete).toHaveBeenCalledWith(postId);
+        });
+
+        it('존재하지 않는 게시글 삭제 시 NotFoundException을 던져야 한다.', async () => {
+            jest.spyOn(repository, 'findOne').mockResolvedValue(null);
+
+            await expect(service.delete(postId, deletePostInput)).rejects.toThrow(
+                NotFoundException,
+            );
+        });
+
+        it('작성자 ID가 일치하지 않으면 BadRequestException을 던져야 한다.', async () => {
+            const existingPost: Post = {
+                id: postId,
+                title: '원본 제목',
+                content: '원본 내용',
+                authorId: 'different_user',
+                password: 'hashedpassword',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            jest.spyOn(repository, 'findOne').mockResolvedValue(existingPost);
+
+            await expect(service.delete(postId, deletePostInput)).rejects.toThrow(
+                BadRequestException,
+            );
+        });
+
+        it('비밀번호가 일치하지 않으면 BadRequestException을 던져야 한다.', async () => {
+            const hashedPassword = await bcrypt.hash('different_password', 10);
+            const existingPost: Post = {
+                id: postId,
+                title: '원본 제목',
+                content: '원본 내용',
+                authorId: 'user123',
+                password: hashedPassword,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            jest.spyOn(repository, 'findOne').mockResolvedValue(existingPost);
+
+            await expect(service.delete(postId, deletePostInput)).rejects.toThrow(
                 BadRequestException,
             );
         });

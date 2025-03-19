@@ -21,6 +21,7 @@ describe('PostsRepository', () => {
                             create: jest.fn(),
                             findUnique: jest.fn(),
                             update: jest.fn(),
+                            delete: jest.fn(),
                         },
                     },
                 },
@@ -158,6 +159,40 @@ describe('PostsRepository', () => {
                 where: { id: postId },
                 data: updateData,
             });
+        });
+    });
+
+    describe('delete', () => {
+        it('게시글을 성공적으로 삭제할 수 있어야 한다.', async () => {
+            const postId = 1;
+            const mockDeletedPost: Post = {
+                id: postId,
+                title: 'Test Post',
+                content: 'Hello',
+                authorId: 'user123',
+                password: 'hashedpassword123',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            jest.spyOn(prismaService.post, 'delete').mockResolvedValue(mockDeletedPost);
+
+            const result = await repository.delete(postId);
+
+            expect(result).toEqual(mockDeletedPost);
+            expect(prismaService.post.delete).toHaveBeenCalledWith({
+                where: { id: postId },
+            });
+        });
+
+        it('존재하지 않는 게시글 삭제 시 예외가 발생해야 한다.', async () => {
+            const postId = 999;
+
+            jest.spyOn(prismaService.post, 'delete').mockRejectedValue(
+                new Error('Record not found'),
+            );
+
+            await expect(repository.delete(postId)).rejects.toThrow('Record not found');
         });
     });
 });

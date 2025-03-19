@@ -5,6 +5,7 @@ import { CreatePostInput } from '../../posts/dtos/create-post.input';
 import { Post } from '../../posts/entities/posts.model';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { UpdatePostInput } from '../../posts/dtos/update-post.input';
+import { DeletePostInput } from '../../posts/dtos/delete-post.input';
 
 describe('PostsResolver', () => {
     let resolver: PostsResolver;
@@ -21,6 +22,7 @@ describe('PostsResolver', () => {
                         create: jest.fn(),
                         findOne: jest.fn(),
                         update: jest.fn(),
+                        delete: jest.fn(),
                     },
                 },
             ],
@@ -199,6 +201,80 @@ describe('PostsResolver', () => {
 
             expect(result).toEqual(mockUpdatedPost);
             expect(service.update).toHaveBeenCalledWith(postId, updatePostInput);
+        });
+    });
+
+    describe('deletePost', () => {
+        it('게시글을 성공적으로 삭제할 수 있어야 한다.', async () => {
+            const postId = 1;
+            const deletePostInput: DeletePostInput = {
+                authorId: 'user123',
+                password: 'password',
+            };
+
+            const mockDeletedPost: Post = {
+                id: postId,
+                title: 'Test Post',
+                content: 'Hello',
+                authorId: 'user123',
+                password: 'hashedpassword123',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            jest.spyOn(service, 'delete').mockResolvedValue(mockDeletedPost);
+
+            const result = await resolver.deletePost(postId, deletePostInput);
+            expect(result).toEqual(mockDeletedPost);
+            expect(service.delete).toHaveBeenCalledWith(postId, deletePostInput);
+        });
+
+        it('존재하지 않는 게시글 삭제 시 NotFoundException을 던져야 한다.', async () => {
+            const postId = 999;
+            const deletePostInput: DeletePostInput = {
+                authorId: 'user123',
+                password: 'password',
+            };
+
+            jest.spyOn(service, 'delete').mockRejectedValue(
+                new NotFoundException('해당 게시글을 찾을 수 없습니다.'),
+            );
+
+            await expect(resolver.deletePost(postId, deletePostInput)).rejects.toThrow(
+                NotFoundException,
+            );
+        });
+
+        it('작성자 ID가 일치하지 않으면 BadRequestException을 던져야 한다.', async () => {
+            const postId = 1;
+            const deletePostInput: DeletePostInput = {
+                authorId: 'wrong_user',
+                password: 'password',
+            };
+
+            jest.spyOn(service, 'delete').mockRejectedValue(
+                new BadRequestException('게시글 작성자만 삭제할 수 있습니다.'),
+            );
+
+            await expect(resolver.deletePost(postId, deletePostInput)).rejects.toThrow(
+                BadRequestException,
+            );
+        });
+
+        it('비밀번호가 일치하지 않으면 BadRequestException을 던져야 한다.', async () => {
+            const postId = 1;
+            const deletePostInput: DeletePostInput = {
+                authorId: 'user123',
+                password: 'wrong_password',
+            };
+
+            jest.spyOn(service, 'delete').mockRejectedValue(
+                new BadRequestException('비밀번호가 일치하지 않습니다.'),
+            );
+
+            await expect(resolver.deletePost(postId, deletePostInput)).rejects.toThrow(
+                BadRequestException,
+            );
         });
     });
 });
