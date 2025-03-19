@@ -1,10 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PostsService } from '../../posts/posts.service';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { IPostsRepository } from '../../posts/interfaces/posts-repository.interface';
 import { CreatePostInput } from '../../posts/dtos/create-post.input';
 import { Post } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { UpdatePostInput } from '../../posts/dtos/update-post.input';
 
 describe('PostsService', () => {
     let service: PostsService;
@@ -172,6 +173,88 @@ describe('PostsService', () => {
             jest.spyOn(repository, 'findOne').mockRejectedValue(new Error('Database error'));
 
             await expect(service.findOne(1)).rejects.toThrow('Database error');
+        });
+    });
+
+    describe('update', () => {
+        const postId = 1;
+        const updatePostInput: UpdatePostInput = {
+            title: '수정된 제목',
+            content: '수정된 내용',
+            authorId: 'user123',
+            password: 'password',
+        };
+
+        it('게시글을 성공적으로 수정할 수 있어야 한다.', async () => {
+            const hashedPassword = await bcrypt.hash('password', 10);
+            const existingPost: Post = {
+                id: postId,
+                title: '원본 제목',
+                content: '원본 내용',
+                authorId: 'user123',
+                password: hashedPassword,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            jest.spyOn(repository, 'findOne').mockResolvedValue(existingPost);
+
+            const updatedPost = { ...existingPost, ...updatePostInput };
+            jest.spyOn(repository, 'update').mockResolvedValue(updatedPost);
+
+            const result = await service.update(postId, updatePostInput);
+
+            expect(result).toEqual(updatedPost);
+            expect(repository.update).toHaveBeenCalledWith(postId, {
+                title: updatePostInput.title,
+                content: updatePostInput.content,
+            });
+        });
+
+        it('존재하지 않는 게시글 수정 시 NotFoundException을 던져야 한다.', async () => {
+            jest.spyOn(repository, 'findOne').mockResolvedValue(null);
+
+            await expect(service.update(postId, updatePostInput)).rejects.toThrow(
+                NotFoundException,
+            );
+        });
+
+        it('작성자 비밀번호가 일치하지 않으면 BadRequestException을 던져야 한다.', async () => {
+            const hashedPassword = await bcrypt.hash('different_password', 10);
+            const existingPost: Post = {
+                id: postId,
+                title: '원본 제목',
+                content: '원본 내용',
+                authorId: 'user123',
+                password: hashedPassword,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            jest.spyOn(repository, 'findOne').mockResolvedValue(existingPost);
+
+            await expect(service.update(postId, updatePostInput)).rejects.toThrow(
+                BadRequestException,
+            );
+        });
+
+        it('작성자 ID가 일치하지 않으면 BadRequestException을 던져야 한다.', async () => {
+            const hashedPassword = await bcrypt.hash('password', 10);
+            const existingPost: Post = {
+                id: postId,
+                title: '원본 제목',
+                content: '원본 내용',
+                authorId: 'different_user',
+                password: hashedPassword,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            jest.spyOn(repository, 'findOne').mockResolvedValue(existingPost);
+
+            await expect(service.update(postId, updatePostInput)).rejects.toThrow(
+                BadRequestException,
+            );
         });
     });
 });
