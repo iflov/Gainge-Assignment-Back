@@ -10,7 +10,7 @@ export class CreatePostInput {
 
     @Field({ nullable: true })
     @IsString()
-    content?: string;
+    content?: string | null;
 
     @Field()
     @IsNotEmpty({ message: '작성자 ID는 필수입니다.' })

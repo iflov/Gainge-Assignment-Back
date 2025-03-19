@@ -22,7 +22,7 @@ export class PostsRepository implements IPostsRepository {
         return this.prisma.post.create({
             data: {
                 title: data.title,
-                content: data.content || '',
+                content: data.content ?? null,
                 authorId: data.authorId,
                 password: data.password,
             },

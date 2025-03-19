@@ -30,6 +30,7 @@ export class PostsService {
 
         return this.postsRepository.create({
             ...data,
+            content: data.content ?? null,
             password: hashedPassword,
         });
     }

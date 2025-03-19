@@ -9,7 +9,7 @@ export class Post {
     title: string;
 
     @Field(() => String, { nullable: true })
-    content: string | null | undefined;
+    content: string | null;
 
     @Field()
     authorId: string;

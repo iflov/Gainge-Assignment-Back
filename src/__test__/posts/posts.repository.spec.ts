@@ -49,6 +49,14 @@ describe('PostsRepository', () => {
             expect(result).toEqual(mockPosts);
             expect(prismaService.post.findMany).toHaveBeenCalled();
         });
+
+        it('게시글이 없을 때 빈 배열을 반환해야 한다.', async () => {
+            jest.spyOn(prismaService.post, 'findMany').mockResolvedValue([]);
+
+            const result = await repository.findAll();
+            expect(result).toEqual([]);
+            expect(prismaService.post.findMany).toHaveBeenCalled();
+        });
     });
 
     describe('create', () => {

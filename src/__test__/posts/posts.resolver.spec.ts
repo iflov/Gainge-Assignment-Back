@@ -49,6 +49,13 @@ describe('PostsResolver', () => {
             expect(service.findAll).toHaveBeenCalled();
         });
 
+        it('게시글이 없을 때 빈 배열을 반환해야 한다.', async () => {
+            jest.spyOn(service, 'findAll').mockResolvedValue([]);
+
+            const result = await service.findAll();
+            expect(result).toEqual([]);
+        });
+
         it('데이터베이스 오류가 발생하면 예외를 던져야 한다.', async () => {
             jest.spyOn(service, 'findAll').mockRejectedValue(new Error('Database error'));
 
