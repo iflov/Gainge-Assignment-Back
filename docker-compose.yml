@@ -6,8 +6,8 @@ services:
     container_name: gainge-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: test
-      MYSQL_DATABASE: gainge
+      MYSQL_ROOT_PASSWORD: ${DATABASE_NAME}
+      MYSQL_DATABASE: ${DATABASE_PASSWORD}
       TZ: Asia/Seoul
     ports:
       - "3306:3306"
