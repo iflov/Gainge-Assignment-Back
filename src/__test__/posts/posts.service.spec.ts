@@ -21,6 +21,7 @@ describe('PostsService', () => {
                         findAll: jest.fn(),
                         create: jest.fn(),
                         findOne: jest.fn(),
+                        update: jest.fn(),
                     },
                 },
             ],
@@ -186,29 +187,49 @@ describe('PostsService', () => {
         };
 
         it('게시글을 성공적으로 수정할 수 있어야 한다.', async () => {
-            const hashedPassword = await bcrypt.hash('password', 10);
+            const postId = 1;
+            const updatePostInput: UpdatePostInput = {
+                title: '수정된 제목',
+                content: '수정된 내용',
+                authorId: 'user123',
+                password: 'password',
+            };
+
             const existingPost: Post = {
                 id: postId,
                 title: '원본 제목',
                 content: '원본 내용',
                 authorId: 'user123',
-                password: hashedPassword,
+                password: await bcrypt.hash('password', 10),
                 createdAt: new Date(),
                 updatedAt: new Date(),
             };
 
+            // 명시적으로 타입을 지정하여 모킹
             jest.spyOn(repository, 'findOne').mockResolvedValue(existingPost);
-
-            const updatedPost = { ...existingPost, ...updatePostInput };
-            jest.spyOn(repository, 'update').mockResolvedValue(updatedPost);
+            jest.spyOn(repository, 'update').mockResolvedValue({
+                ...existingPost,
+                title: updatePostInput.title || existingPost.title,
+                content: updatePostInput.content || existingPost.content,
+            } as Post);
 
             const result = await service.update(postId, updatePostInput);
 
-            expect(result).toEqual(updatedPost);
-            expect(repository.update).toHaveBeenCalledWith(postId, {
-                title: updatePostInput.title,
-                content: updatePostInput.content,
-            });
+            const updateData: Partial<Post> = {};
+            if (updatePostInput.title !== undefined) {
+                updateData.title = updatePostInput.title;
+            }
+            if (updatePostInput.content !== undefined) {
+                updateData.content = updatePostInput.content;
+            }
+
+            expect(result).toEqual(
+                expect.objectContaining({
+                    title: updatePostInput.title,
+                    content: updatePostInput.content,
+                }),
+            );
+            expect(repository.update).toHaveBeenCalledWith(postId, updateData);
         });
 
         it('존재하지 않는 게시글 수정 시 NotFoundException을 던져야 한다.', async () => {

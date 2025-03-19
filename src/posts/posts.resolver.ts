@@ -2,6 +2,7 @@ import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { PostsService } from './posts.service';
 import { Post } from './entities/posts.model';
 import { CreatePostInput } from './dtos/create-post.input';
+import { UpdatePostInput } from './dtos/update-post.input';
 
 @Resolver(() => Post)
 export class PostsResolver {
@@ -29,5 +30,13 @@ export class PostsResolver {
     @Mutation(() => Post, { name: 'create_post' })
     async createPost(@Args('input') input: CreatePostInput): Promise<Post> {
         return this.postsService.create(input);
+    }
+
+    @Mutation(() => Post)
+    async updatePost(
+        @Args('id', { type: () => Int }) id: number,
+        @Args('input') input: UpdatePostInput,
+    ): Promise<Post> {
+        return this.postsService.update(id, input);
     }
 }

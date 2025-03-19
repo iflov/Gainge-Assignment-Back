@@ -1,6 +1,5 @@
 import { Post } from '@prisma/client';
 import { CreatePostInput } from '../dtos/create-post.input';
-import { UpdatePostInput } from '../dtos/update-post.input';
 
 export interface IPostsRepository {
     /**
@@ -21,5 +20,5 @@ export interface IPostsRepository {
     /**
      * 게시글 수정
      */
-    update(id: number, data: UpdatePostInput): Promise<Post>;
+    update(id: number, data: Partial<Pick<Post, 'title' | 'content'>>): Promise<Post>;
 }

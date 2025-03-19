@@ -4,6 +4,7 @@ import { PostsService } from '../../posts/posts.service';
 import { CreatePostInput } from '../../posts/dtos/create-post.input';
 import { Post } from '../../posts/entities/posts.model';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { UpdatePostInput } from '../../posts/dtos/update-post.input';
 
 describe('PostsResolver', () => {
     let resolver: PostsResolver;
@@ -19,6 +20,7 @@ describe('PostsResolver', () => {
                         findAll: jest.fn(),
                         create: jest.fn(),
                         findOne: jest.fn(),
+                        update: jest.fn(),
                     },
                 },
             ],
@@ -168,6 +170,35 @@ describe('PostsResolver', () => {
             jest.spyOn(service, 'findOne').mockRejectedValue(new Error('Database error'));
 
             await expect(resolver.post(1)).rejects.toThrow('Database error');
+        });
+    });
+
+    describe('updatePost', () => {
+        it('게시글을 성공적으로 수정할 수 있어야 한다.', async () => {
+            const postId = 1;
+            const updatePostInput: UpdatePostInput = {
+                title: '수정된 제목',
+                content: '수정된 내용',
+                authorId: 'user123',
+                password: 'password',
+            };
+
+            const mockUpdatedPost: Post = {
+                id: postId,
+                title: '수정된 제목', // 명시적으로 문자열 지정
+                content: '수정된 내용', // 명시적으로 문자열 지정
+                authorId: updatePostInput.authorId,
+                password: updatePostInput.password,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            jest.spyOn(service, 'update').mockResolvedValue(mockUpdatedPost);
+
+            const result = await resolver.updatePost(postId, updatePostInput);
+
+            expect(result).toEqual(mockUpdatedPost);
+            expect(service.update).toHaveBeenCalledWith(postId, updatePostInput);
         });
     });
 });

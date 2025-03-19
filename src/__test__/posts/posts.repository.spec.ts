@@ -3,6 +3,7 @@ import { PostsRepository } from '../../posts/posts.repository';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreatePostInput } from '../../posts/dtos/create-post.input';
 import { Post } from '@prisma/client';
+import { UpdatePostInput } from '../../posts/dtos/update-post.input';
 
 describe('PostsRepository', () => {
     let repository: PostsRepository;
@@ -19,6 +20,7 @@ describe('PostsRepository', () => {
                             findMany: jest.fn(),
                             create: jest.fn(),
                             findUnique: jest.fn(),
+                            update: jest.fn(),
                         },
                     },
                 },
@@ -124,6 +126,37 @@ describe('PostsRepository', () => {
             expect(result).toBeNull();
             expect(prismaService.post.findUnique).toHaveBeenCalledWith({
                 where: { id: postId },
+            });
+        });
+    });
+
+    describe('update', () => {
+        it('게시글을 성공적으로 수정할 수 있어야 한다.', async () => {
+            const postId = 1;
+            const updateData: Partial<UpdatePostInput> = {
+                title: '수정된 제목',
+                content: '수정된 내용',
+            };
+
+            const mockUpdatedPost: Post = {
+                id: postId,
+                title: updateData.title || '원본 제목',
+                content: updateData.content || '원본 내용',
+                authorId: 'user123',
+                password: 'hashedpassword',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            // 명시적으로 타입을 지정하여 모킹
+            jest.spyOn(prismaService.post, 'update').mockResolvedValue(mockUpdatedPost);
+
+            const result = await repository.update(postId, updateData);
+
+            expect(result).toEqual(mockUpdatedPost);
+            expect(prismaService.post.update).toHaveBeenCalledWith({
+                where: { id: postId },
+                data: updateData,
             });
         });
     });
