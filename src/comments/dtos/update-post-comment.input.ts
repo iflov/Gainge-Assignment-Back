@@ -1,16 +1,14 @@
-import { Field, InputType, PartialType } from '@nestjs/graphql';
+import { Field, InputType, PickType } from '@nestjs/graphql';
 import { CreatePostCommentInput } from './create-post-comment.input';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 @InputType()
-export class UpdatePostCommentInput extends PartialType(CreatePostCommentInput) {
-    @Field(() => String)
-    @IsNotEmpty({ message: '작성자 ID는 필수입니다.' })
+export class UpdatePostCommentInput extends PickType(CreatePostCommentInput, [
+    'authorId',
+    'password',
+]) {
+    @Field(() => String, { nullable: true })
     @IsString()
-    authorId: string;
-
-    @Field(() => String)
-    @IsNotEmpty({ message: '비밀번호는 필수입니다.' })
-    @IsString()
-    password: string;
+    @IsOptional()
+    content?: string;
 }
