@@ -1,13 +1,13 @@
 import { Args, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { CommentsService } from './comments.service';
+import { PostCommentsService } from './post-comments.service';
 import { CreatePostCommentInput } from './dtos/create-post-comment.input';
 import { PostComment } from './entities/post-comment.model';
 import { UpdatePostCommentInput } from './dtos/update-post-comment.input';
 import { DeletePostCommentInput } from './dtos/delete-post-comment.input';
 
 @Resolver(() => PostComment)
-export class CommentsResolver {
-    constructor(private readonly commentsService: CommentsService) {}
+export class PostCommentsResolver {
+    constructor(private readonly commentsService: PostCommentsService) {}
 
     // 댓글 조회
     @Query(() => [PostComment])

@@ -7,7 +7,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { PrismaModule } from './prisma/prisma.module';
 import { PostsModule } from './posts/posts.module';
-import { CommentsModule } from './comments/comments.module';
+import { PostCommentsModule } from './comments/post-comments.module';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { GraphQLExceptionFilter } from './common/filters/graphql-exception.filter';
@@ -35,7 +35,7 @@ import { GraphQLExceptionFilter } from './common/filters/graphql-exception.filte
         }),
 
         PostsModule,
-        CommentsModule,
+        PostCommentsModule,
         // ORM 모듈 (별도 파일 생성 후 import 가능)
         PrismaModule,
     ],

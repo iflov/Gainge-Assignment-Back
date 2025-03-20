@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CommentsService } from '../../comments/comments.service';
+import { PostCommentsService } from '../../comments/post-comments.service';
 import { IPostsRepository } from '../../posts/interfaces/posts-repository.interface';
 import { PostComment } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
@@ -12,14 +12,14 @@ import { UpdatePostCommentInput } from '../../comments/dtos/update-post-comment.
 import { DeletePostCommentInput } from '../../comments/dtos/delete-post-comment.input';
 
 describe('CommentsService', () => {
-    let service: CommentsService;
+    let service: PostCommentsService;
     let commentsRepository: IPostCommentsRepository;
     let postsRepository: IPostsRepository;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
-                CommentsService,
+                PostCommentsService,
                 {
                     provide: 'IPostCommentsRepository',
                     useValue: {
@@ -39,7 +39,7 @@ describe('CommentsService', () => {
             ],
         }).compile();
 
-        service = module.get<CommentsService>(CommentsService);
+        service = module.get<PostCommentsService>(PostCommentsService);
         commentsRepository = module.get<IPostCommentsRepository>('IPostCommentsRepository');
         postsRepository = module.get<IPostsRepository>('IPostsRepository');
     });

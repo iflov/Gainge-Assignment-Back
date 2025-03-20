@@ -31,7 +31,6 @@ describe('CommentsResolver (e2e)', () => {
         });
 
         // 테스트용 게시글 생성
-        // 테스트용 게시글 생성
         const hashedPassword = await bcrypt.hash(testPassword, 10);
         const createdPost = await prismaService.post.create({
             data: {
@@ -97,7 +96,7 @@ describe('CommentsResolver (e2e)', () => {
     it('should query all comments for a post', () => {
         const commentsQuery = `
       query {
-        postComments(postId: ${testPostId}) {
+        getPostComments(postId: ${testPostId}) {
           id
           content
           authorId
@@ -113,7 +112,7 @@ describe('CommentsResolver (e2e)', () => {
             })
             .expect(200)
             .expect((res) => {
-                const comments = res.body.data.postComments;
+                const comments = res.body.data.getPostComments;
                 expect(Array.isArray(comments)).toBe(true);
                 expect(comments.length).toBeGreaterThan(0);
 
@@ -215,7 +214,7 @@ describe('CommentsResolver (e2e)', () => {
     it('should confirm comment deletion by querying comments', () => {
         const commentsQuery = `
       query {
-        postComments(postId: ${testPostId}) {
+        getPostComments(postId: ${testPostId}) {
           id
           content
         }
@@ -229,7 +228,7 @@ describe('CommentsResolver (e2e)', () => {
             })
             .expect(200)
             .expect((res) => {
-                const comments = res.body.data.postComments;
+                const comments = res.body.data.getPostComments;
                 const deletedComment = comments.find((c) => c.id === testCommentId);
                 expect(deletedComment).toBeUndefined();
             });

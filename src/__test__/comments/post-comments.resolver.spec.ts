@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CommentsResolver } from '../../comments/comments.resolver';
-import { CommentsService } from '../../comments/comments.service';
+import { PostCommentsResolver } from '../../comments/post-comments.resolver';
+import { PostCommentsService } from '../../comments/post-comments.service';
 import { CreatePostCommentInput } from '../../comments/dtos/create-post-comment.input';
 import { PostComment } from '../../comments/entities/post-comment.model';
 import { Post } from '../../posts/entities/posts.model';
@@ -9,15 +9,15 @@ import { UpdatePostCommentInput } from '../../comments/dtos/update-post-comment.
 import { DeletePostCommentInput } from '../../comments/dtos/delete-post-comment.input';
 
 describe('CommentsResolver', () => {
-    let resolver: CommentsResolver;
-    let service: CommentsService;
+    let resolver: PostCommentsResolver;
+    let service: PostCommentsService;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
-                CommentsResolver,
+                PostCommentsResolver,
                 {
-                    provide: CommentsService,
+                    provide: PostCommentsService,
                     useValue: {
                         create: jest.fn(),
                         findByPostId: jest.fn(),
@@ -28,8 +28,8 @@ describe('CommentsResolver', () => {
             ],
         }).compile();
 
-        resolver = module.get<CommentsResolver>(CommentsResolver);
-        service = module.get<CommentsService>(CommentsService);
+        resolver = module.get<PostCommentsResolver>(PostCommentsResolver);
+        service = module.get<PostCommentsService>(PostCommentsService);
     });
 
     describe('createPostComment', () => {

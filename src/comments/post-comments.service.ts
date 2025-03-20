@@ -9,7 +9,7 @@ import { UpdatePostCommentInput } from './dtos/update-post-comment.input';
 import { DeletePostCommentInput } from './dtos/delete-post-comment.input';
 
 @Injectable()
-export class CommentsService {
+export class PostCommentsService {
     constructor(
         @Inject('IPostCommentsRepository')
         private readonly commentsRepository: IPostCommentsRepository,
