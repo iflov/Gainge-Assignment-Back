@@ -71,6 +71,11 @@ npm run build
 npm run start:prod
 ```
 
+```bash
+# Docker를 이용한 서버 실행
+npm run docker:up
+```
+
 서버는 기본적으로 `http://localhost:5000`에서 실행됩니다.
 GraphQL Playground는 `http://localhost:5000/test`에서 접근 가능합니다.
 
