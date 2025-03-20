@@ -28,7 +28,7 @@ export class PostsResolver {
     }
 
     // 게시글 수정
-    @Mutation(() => Post)
+    @Mutation(() => Post, { name: 'update_post' })
     async updatePost(
         @Args('id', { type: () => Int }) id: number,
         @Args('input') input: UpdatePostInput,
@@ -37,7 +37,7 @@ export class PostsResolver {
     }
 
     // 게시글 삭제
-    @Mutation(() => Post)
+    @Mutation(() => Post, { name: 'delete_post' })
     async deletePost(
         @Args('id', { type: () => Int }) id: number,
         @Args('input') input: DeletePostInput,

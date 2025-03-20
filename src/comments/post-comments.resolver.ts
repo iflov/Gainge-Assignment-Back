@@ -10,7 +10,7 @@ export class PostCommentsResolver {
     constructor(private readonly commentsService: PostCommentsService) {}
 
     // 댓글 조회
-    @Query(() => [PostComment])
+    @Query(() => [PostComment], { name: 'post_comments' })
     async getPostComments(
         @Args('postId', { type: () => Int }) postId: number,
     ): Promise<PostComment[]> {
@@ -24,7 +24,7 @@ export class PostCommentsResolver {
     }
 
     // 댓글 수정
-    @Mutation(() => PostComment)
+    @Mutation(() => PostComment, { name: 'update_post_comment' })
     async updatePostComment(
         @Args('id', { type: () => Int }) id: number,
         @Args('input') input: UpdatePostCommentInput,
@@ -33,7 +33,7 @@ export class PostCommentsResolver {
     }
 
     // 댓글 삭제
-    @Mutation(() => PostComment)
+    @Mutation(() => PostComment, { name: 'delete_post_comment' })
     async deletePostComment(
         @Args('id', { type: () => Int }) id: number,
         @Args('input') input: DeletePostCommentInput,
