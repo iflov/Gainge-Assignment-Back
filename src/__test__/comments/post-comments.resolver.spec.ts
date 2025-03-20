@@ -98,7 +98,7 @@ describe('CommentsResolver', () => {
 
             jest.spyOn(service, 'findByPostId').mockResolvedValue(mockComments);
 
-            const result = await resolver.postComments(postId);
+            const result = await resolver.getPostComments(postId);
             expect(result).toEqual(mockComments);
             expect(service.findByPostId).toHaveBeenCalledWith(postId);
         });

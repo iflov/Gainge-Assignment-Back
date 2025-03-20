@@ -9,18 +9,21 @@ import { DeletePostCommentInput } from './dtos/delete-post-comment.input';
 export class CommentsResolver {
     constructor(private readonly commentsService: CommentsService) {}
 
+    // 댓글 조회
     @Query(() => [PostComment])
-    async postComments(
+    async getPostComments(
         @Args('postId', { type: () => Int }) postId: number,
     ): Promise<PostComment[]> {
         return this.commentsService.findByPostId(postId);
     }
 
+    // 댓글 작성
     @Mutation(() => PostComment, { name: 'create_post_comment' })
     async createPostComment(@Args('input') input: CreatePostCommentInput): Promise<PostComment> {
         return this.commentsService.create(input);
     }
 
+    // 댓글 수정
     @Mutation(() => PostComment)
     async updatePostComment(
         @Args('id', { type: () => Int }) id: number,
@@ -29,6 +32,7 @@ export class CommentsResolver {
         return this.commentsService.update(id, input);
     }
 
+    // 댓글 삭제
     @Mutation(() => PostComment)
     async deletePostComment(
         @Args('id', { type: () => Int }) id: number,

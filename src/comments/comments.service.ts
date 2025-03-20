@@ -17,6 +17,7 @@ export class CommentsService {
         private readonly postsRepository: IPostsRepository,
     ) {}
 
+    // 댓글 작성
     async create(data: CreatePostCommentInput): Promise<GraphQLPostComment> {
         // 내용 검증
         if (!data.content) {
@@ -51,6 +52,7 @@ export class CommentsService {
         };
     }
 
+    // 게시글 id로 댓글 찾기
     async findByPostId(postId: number): Promise<GraphQLPostComment[]> {
         // 게시글 존재 확인
         const post = await this.postsRepository.findOne(postId);
@@ -68,6 +70,7 @@ export class CommentsService {
         }));
     }
 
+    // 댓글 수정
     async update(commentId: number, data: UpdatePostCommentInput): Promise<GraphQLPostComment> {
         // 댓글 존재 확인
         const existingComment = await this.commentsRepository.findOne(commentId);
@@ -105,6 +108,7 @@ export class CommentsService {
         };
     }
 
+    // 댓글 삭제
     async delete(commentId: number, data: DeletePostCommentInput): Promise<GraphQLPostComment> {
         // 댓글 존재 확인
         const existingComment = await this.commentsRepository.findOne(commentId);

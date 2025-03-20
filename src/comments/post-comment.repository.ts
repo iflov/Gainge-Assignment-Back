@@ -27,12 +27,14 @@ export class PostCommentsRepository implements IPostCommentsRepository {
         });
     }
 
+    // DB에서 댓글 id로 댓글 조회
     findOne(commentId: number): Promise<PostComment | null> {
         return this.prisma.postComment.findUnique({
             where: { id: commentId },
         });
     }
 
+    // DB에서 댓글 수정
     async update(id: number, data: Partial<Pick<PostComment, 'content'>>): Promise<PostComment> {
         return this.prisma.postComment.update({
             where: { id },
@@ -40,6 +42,7 @@ export class PostCommentsRepository implements IPostCommentsRepository {
         });
     }
 
+    // DB에서 댓글 삭제
     async delete(id: number): Promise<PostComment> {
         return this.prisma.postComment.delete({
             where: { id },
