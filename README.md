@@ -1,12 +1,5 @@
 # 게시글 및 댓글 관리 API (NestJS + GraphQL)
 
-## 프로젝트 개요
-
-본 프로젝트는 게시글 및 댓글을 관리하는 
-GraphQL API를 NestJS 프레임워크를 이용하여 구현한 백엔드 서버입니다. 
-사용자는 게시글을 생성, 조회, 수정, 삭제할 수 있으며, 
-각 게시글에 댓글을 달고 관리할 수 있습니다.
-
 ## 기술 스택
 
 - **언어 및 런타임**: TypeScript, Node.js
@@ -46,7 +39,7 @@ GraphQL API를 NestJS 프레임워크를 이용하여 구현한 백엔드 서버
 
 ```bash
 # 레포지토리 클론
-git clone [레포지토리 URL]
+git clone git@github.com:iflov/Gainge-Assignment-Back.git
 cd [프로젝트 폴더]
 
 # 의존성 설치
@@ -138,7 +131,7 @@ mutation {
 
 ```graphql
 mutation {
-  updatePost(
+  update_post(
     id: 1, 
     input: {
       title: "수정된 제목"
@@ -159,7 +152,7 @@ mutation {
 
 ```graphql
 mutation {
-  deletePost(
+  delete_post(
     id: 1, 
     input: {
       authorId: "user123"
@@ -178,7 +171,7 @@ mutation {
 
 ```graphql
 query {
-  postComments(postId: 1) {
+  post_comments(postId: 1) {
     id
     content
     authorId
@@ -217,7 +210,7 @@ mutation {
 
 ```graphql
 mutation {
-  updatePostComment(
+  update_post_comment(
     id: 1, 
     input: {
       content: "수정된 댓글 내용"
@@ -237,16 +230,16 @@ mutation {
 
 ```graphql
 mutation {
-  deletePostComment(
-    id: 1, 
-    input: {
-      authorId: "user123"
-      password: "password123"
+    delete_post_comment(
+        id: 1,
+        input: {
+            authorId: "user123"
+            password: "password123"
+        }
+    ) {
+        id
+        content
     }
-  ) {
-    id
-    content
-  }
 }
 ```
 
@@ -282,3 +275,6 @@ npm run test:cov
 - 인터페이스를 활용한 의존성 역전 원칙(DIP) 구현
 - 모듈화된 NestJS 아키텍처로 코드 유지보수성 향상
 - GraphQL 예외 필터를 통한 일관된 에러 처리
+
+### 기술 선택 가이드
+- [프로젝트 기술 선택 가이드](docs/EXPLAIN.md)
